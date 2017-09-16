@@ -22,23 +22,27 @@ Puppet::Type.type(:package).provide(:te_agent_bin, :parent => Puppet::Provider::
   end
 
   def self.instances
-    paths = []
-    versions = []
-    File.open('/etc/init.d/twdaemon').each_line do |r|
-      next if r.match(/^#/)
-      pathn = r.sub(/bin.*/, 'data/version')
-      npath = pathn.rstrip!
-      paths.push(npath)
-    end
-    paths.each do |path|
-      vfile = File.open("#{path}")
-      vfile.each_line do |v|
-        versionr = /\d.\d.\d/.match(v).to_s
-        versions.push(versionr)
+    begin
+      paths = []
+      versions = []
+      File.open('/etc/init.d/twdaemon').each_line do |r|
+        next if r.match(/^#/)
+        pathn = r.sub(/bin.*/, 'data/version')
+        npath = pathn.rstrip!
+        paths.push(npath)
       end
-    end
-    versions.each.collect do |version|
-      new(:name => 'te_agent', :ensure => version, :provider => :te_agent_bin)
+      paths.each do |path|
+        vfile = File.open("#{path}")
+        vfile.each_line do |v|
+          versionr = /\d.\d.\d/.match(v).to_s
+          versions.push(versionr)
+        end
+      end
+      versions.each.collect do |version|
+        new(:name => 'te_agent', :ensure => version, :provider => :te_agent_bin)
+      end
+    rescue
+      []
     end
   end
 
